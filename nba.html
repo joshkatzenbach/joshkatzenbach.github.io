@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>NBA Neural Net</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html">Josh Katzenbach</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>NBA Neural Network</h2>
+								<p>Predictive deep neural network using Python's PyTorch package.</p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+
+									<h3 class="major">Description</h3>
+									<p>The overall goal of this project was to produce a program capable of predicting the outcome of NBA basketball games
+                                        with greater accuracy than a human could do with the simple stats that are available. More specifically, I wanted to
+                                        be able to predict the games based off of the stats that were available at halftime of each game. My approach to 
+                                        solving the problem was using a deep neural network that would learn from NBA games of the past in order to identify
+                                        trends that may be difficult for humans to observe.
+                                    </p>
+                                    
+                                    <h3 class="major">Data</h3>
+									<p>
+                                        I designed a python program that scraped data from basketballreference.com (while respecting rate limits). Using previous basketball knowledge, 
+                                        I identified 14 different statistics that would be available both at halftime and at the end of each game. I avoided
+                                        the more advanced stats that are created by various combinations of the simple counting stats because a well designed 
+                                        neural network should have the capacity to see the relationships between the simple stats without human intervention.
+                                        In fact, a neural network should be able to come up with weighted relationships that are even more accurate than the 
+                                        relationships that humans can identity on their own. I had the program scrape that data from over 30,000 NBA games 
+                                        dating back to the year 2000. I also calculated season averages for each team up until the game that they were currently
+                                        playing - we couldn't use total season averages because that data wouldn't be available in real life dues to those games not 
+                                        being played yet. 
+
+
+                                    <ul class="actions" style="display: flex; justify-content: center; margin: 0; padding: 0;">
+                                        <li style="list-style-type: none;">
+                                            <a href="https://github.com/joshkatzenbach/nba_win_prediction" class="button primary">See the Code</a>
+                                        </li>
+                                    </ul>
+							</div>
+
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							<h2 class="major">Get in touch</h2>
+                            <p>Feel free to reach out to me on any of the following platforms.</p>
+							<ul class="contact">
+								<li class="icon solid fa-phone">(801) 602-8168</li>
+								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
+								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
+								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
+							</ul>
+							<ul class="copyright">
+								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
