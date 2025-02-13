@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Space Invaders</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html">Josh Katzenbach</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>Space Invaders</h2>
+								<p>Video game clone run on linux embedded systems with custom kernel modules</p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+
+									<h3 class="major">Description</h3>
+									<p> This is clone of the classic Space Invaders video game. It includes all the typical elements: aliens that shoot, a ufo for extra points,
+                                        limited lives, the ability to move, and a high score screen. The game was written in C and runs on a linux embedded system. This particular
+                                        system had a Zynq chip, allowing hardware to be configured like an FPGA, but also run like an ARM processor. All aspects of the game and 
+                                        the drivers were coded in C. 
+                                    </p>
+
+                                    <h3 class="major">Userspace</h3>
+                                    <p>
+                                        Certain drivers, specifically those controlling the buttons, switches, and the fixed interval timer (FIT) were written in userspace. These
+                                        drivers interacted with the hardware using the Userspace I/O driver (UIO). 
+                                    </p>
+                                    
+                                    <h3 class="major">Kernel</h3>
+									<p>
+                                        Other, more complex drivers, were written as kernel modules. These drivers included the audio codec for the game and the programmable interval
+                                        timer (PIT). This meant that these modules needed to be registered and inserted into the kernel before being able to use them. In order to 
+                                        effectively insert these drivers into the kernel, I had to study extensive documentation kernel documentation.
+                                        Additionally, the actual hardware for the programmable interval timer was built using SystemVerilog in vivado. 
+									</p>
+
+                                    <h3 class="major">Hardware</h3>
+                                    <p>
+                                        While most of the necessary hardware came on the Zynq board, I actually used SystemVerilog code to design the hardware necessary for the PIT.
+                                        This hardware was then added to the FPGA portion of the board, as well as being registered in the linux system tree.
+                                    </p>
+
+                                    <h3 class="major">Code Efficiency</h3>
+                                    <p> In order for the game to run properly, it was essential to make the code efficient enought to move dozens of objects on the screen between 
+                                        each interrupt. Each sprite (on screen game element) needed to be redrawn in between each interrupt.
+                                    </p>
+
+
+
+                                    <ul class="actions" style="display: flex; justify-content: center; margin: 0; padding: 0;">
+                                        <li style="list-style-type: none;">
+                                            <a href="https://github.com/byu-ecen427-classroom/427-labs-joshkatzenbach" class="button primary">See the Code</a>
+                                        </li>
+                                    </ul>
+							</div>
+
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							<h2 class="major">Get in touch</h2>
+                            <p>Feel free to reach out to me on any of the following platforms.</p>
+							<ul class="contact">
+								<li class="icon solid fa-phone">(801) 602-8168</li>
+								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
+								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
+								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
+							</ul>
+							<ul class="copyright">
+								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Chess Server</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html">Josh Katzenbach</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>Chess Server</h2>
+								<p>Fully functional chess server using custom APIs, JSON, WebSockets, and an SQL database.</p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="flex: 1;">
+                                            <h3 class="major">Description</h3>
+                                            <p> This project consists of both the client side and the server side of a chess game. Clients are able to connect to register as a user,
+                                                create games, and join games as both players and spectators. The complete set of chess rules is implemented into the game. To the right
+                                                is an image that shows how the chess board would appear within the player's terminal. 
+                                            </p>
+                                        </div>
+                                        <div style="flex: 1; text-align: center;">
+                                            <img src="images/chess.png" alt="Chess Game" style="max-width: 70%; height: auto;">
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 class="major">Custom RESTful APIs</h3>
+									<p>
+                                        7 different custom APIs were designed for this project, allowing the client to easily communicate with the server. These APIs used the 
+                                        RESTful architectural style, utilizing DELETE, PUT, GET, and POST types. These APIs are utilized primarily pregame. They carry authorization tokens,
+                                        allowing the server and the client to keep track of the current session. These APIs include:
+                                        <ul>
+                                            <li>Register</li>
+                                            <li>Login</li>
+                                            <li>Create Game</li>
+                                            <li>List Game</li>
+                                            <li>Clear</li>
+                                            <li>Join Game</li>
+                                            <li>Logout</li>
+                                        </ul>
+									</p>
+
+                                    <h3 class="major">WebSockets</h3>
+                                    <p>
+                                        Once a game had been joined, the client and server would create a WebSocket connection. This allowed for bi-directional instantaneous
+                                        communication between the two. This was essential so that each player (or spectator) could receive board updates as soon as another move had been made. 
+
+									<h3 class="major">DataBase</h3>
+										The server utilized an SQL database in order to store player data. The server used Database Access Objects (DAO) in order 
+                                        to securely and safely read and right data. This database utilized several different tables, among which were:
+										<ul> 
+											<li><strong>Current Sessions</strong> - Kept track of usernames and authorization tokens to manage open sessions.</li>
+                                            <li><strong>Users</strong> - Stored user data, including usernames, passwords, and emails.</li>
+                                            <li><strong>Games</strong> - Stored data about each game, including the players, the board state, and the game's status.</li>
+										<p></p>
+                                        <p> Complex data structures, such as board state, were communicated through RESTful APIs and WebSockets using JSON.</P>
+                                        
+
+
+
+
+                                    <ul class="actions" style="display: flex; justify-content: center; margin: 0; padding: 0;">
+                                        <li style="list-style-type: none;">
+                                            <a href="https://github.com/joshkatzenbach/chess/tree/main/chessProject" class="button primary">See the Code</a>
+                                        </li>
+                                    </ul>
+							</div>
+
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							<h2 class="major">Get in touch</h2>
+                            <p>Feel free to reach out to me on any of the following platforms.</p>
+							<ul class="contact">
+								<li class="icon solid fa-phone">(801) 602-8168</li>
+								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
+								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
+								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
+							</ul>
+							<ul class="copyright">
+								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
