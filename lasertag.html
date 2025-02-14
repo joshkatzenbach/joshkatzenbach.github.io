@@ -19,7 +19,7 @@
 
 				<!-- Header -->
 					<header id="header">
-						<h1><a href="index.html">Josh Katzenbach</a></h1>
+						<h1><a href="index.html">Laser Tag</a></h1>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -49,9 +49,50 @@
 							<div class="wrapper">
 								<div class="inner">
 
-									<h3 class="major">Description</h3>
+									<h3 class="major">Project Overview</h3>
 									<p>
-                                    </p>
+										I developed a complete laser tag system. First, the hardware to detect, amplify, and filter the signals. Second, the software to run the game, process the signals, and keep score.
+										All software was coded in C and embedded into a microcontroller. 
+									</p>
+									<h3 class = "major">Receiver Board</h3>
+									<p>
+										In order to accurately detect a laser tag single, I developed a circuit board to process the signals. The first piece of hardware was a simple photodiode that would
+										produce a voltage when hit with a beam of light coming from the laser tag gun. In order to make the signal strong enough to eventually read digital, I designed an 
+										amplification process that used a 2 stage setup with operational amplifies. After these amplifies, I utilized capacitors and resistors as an 
+										analog filter to remove all of noise signals that inevitably contaminated the signal. Finally, I designed a small clipping circuit using operational amplifiers and diodes
+										to limit the outgoing voltage to less than one volt to avoid damaging the microcontroller that would come later on in the circuit. LTspice was used to design the orginal 
+										circuit. We then built it and adjusted it in a breadboard before designing and ordering a PCB. 
+									</p>
+									<div class="image-grid" style="text-align: center;">
+										<div class="image-item" style="width: 45%; display: inline-block; margin: 2%;">
+											<a  href = "images/Receiver_Board_Amplifer.png" class = image><img src="images/Receiver_Board_Amplifer.png" alt="Receiver Board Image 1" style="width: 100%;" /></a>
+											<p>Amplification and Analog Filters</p>
+										</div>
+										<div class="image-item" style="width: 45%; display: inline-block; margin: 2%;">
+											<a href="images/Receiver_Board_Clipping.png" class="image"><img src="images/Receiver_Board_Clipping.png" alt="Receiver Board Image 2" style="width: 100%;" /></a>
+											<p>Signal Clipping and More Filtering</p>
+										</div>
+									</div>
+                                    
+									<h3 class= "major">Digital Filtering</h3>
+									<p>
+										After the signal went through initial processing by the receiver board, it was sent to the microcontroller. We then designed a two stage filter system in matlab and 
+										afterwards implemented the code in C to be put on our embedded microcontroller. The first filter was an anti-aliasing FIR filter that eliminated any high frequency signals
+										that could be misinterpreted as lower frequencies by the other filters. Afterward, the signal was sent through 10 different bandpass filters to determine the exact frequency
+										that was detected. From here, we could determine which player shot, and thus awared points in the software accordingly. 
+									</p>
+									<h3 class="major">Frequencies</h3>
+									<p>
+										The embedded program also contained the appropriate state machines to give each player their own specific light frequency. By decidiing how many clock cycles would pass between
+										turning on and off the LED, we could produce a frequency that would be picked up by the receive board, processed by the digital filters, and eventually determine who had shot 
+										who for scoring purposes. 
+									</p>
+									
+										<ul class="actions" style="display: flex; justify-content: center; margin: 0; padding: 0;">
+											<li style="list-style-type: none;">
+												<a href="https://github.com/PanchoElGuero/ecen390/tree/main" class="button primary">See the Code</a>
+											</li>
+										</ul>
                           
 							</div>
 
@@ -67,9 +108,6 @@
 								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
 								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
 								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
-							</ul>
-							<ul class="copyright">
-								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
 							</ul>
 						</div>
 					</section>
