@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>AutoBudget</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html">AutoBudget</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>AutoBudget</h2>
+								<p>A full-stack personal finance platform with bank integration, AI categorization, and Slack-driven budget management.</p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+
+									<h3 class="major">Description</h3>
+									<p>
+										AutoBudget is a full-stack personal finance management platform designed to automate the tedious parts of budgeting.
+										Users connect their bank accounts, and the system automatically syncs transactions, categorizes them using AI, and
+										tracks spending against a custom budget — all without manual data entry. At month-end, an interactive Slack flow
+										guides users through reconciliation decisions for each budget category.
+									</p>
+									<p>
+										The entire stack is written in TypeScript — Angular 20+ on the frontend and Express.js on the backend, with
+										PostgreSQL as the database. This decision was deliberate: shared type definitions between the frontend and backend
+										eliminate entire classes of runtime errors and make refactoring safe. For database access, Drizzle ORM was chosen
+										over heavier alternatives like TypeORM or Sequelize because it generates type-safe query builders directly from
+										the schema definition, with minimal runtime overhead and readable SQL output that is easy to debug. The frontend
+										is deployed on Firebase Hosting for global CDN distribution, while the backend and database run on Railway for
+										streamlined deployment with automatic migrations on startup.
+									</p>
+
+									<h3 class="major">Plaid Integration & Transaction Sync</h3>
+									<p>
+										Bank account connectivity is powered by Plaid's API through a multi-step secure handshake. The backend generates a
+										link token, the user authenticates through Plaid's embedded Link UI, and the resulting public token is exchanged
+										server-side for a permanent access token that is immediately encrypted before storage.
+									</p>
+									<p>
+										Transaction syncing is webhook-driven rather than polling-based. When new transactions are available, Plaid sends a
+										webhook that triggers a cursor-based sync — each sync picks up exactly where the last one left off, avoiding
+										duplicate fetches. The webhook verification pipeline is multi-layered:
+									</p>
+									<ul>
+										<li><Strong>JWT Signature Verification</Strong> — The webhook payload is a signed JWT. The server fetches Plaid's
+											public verification key and validates the signature before processing.</li>
+										<li><Strong>Body Hash Validation</Strong> — A SHA-256 hash of the raw request body is compared against the hash
+											embedded in the JWT, ensuring the payload hasn't been tampered with in transit.</li>
+										<li><Strong>Timestamp Check</Strong> — Webhooks older than 5 minutes are rejected to prevent replay attacks.</li>
+									</ul>
+									<p>
+										A critical design decision here is that the server responds with HTTP 200 immediately upon receiving the webhook,
+										before any processing begins. Plaid requires responses within 5 seconds, and transaction processing — which
+										includes AI categorization and Slack notifications — can take significantly longer. The actual processing happens
+										asynchronously after acknowledgment, with errors stored in the database for inspection and retry rather than
+										surfaced to Plaid. Individual transaction failures don't block the rest of the batch.
+									</p>
+
+									<h3 class="major">AI-Powered Transaction Categorization</h3>
+									<p>
+										Every incoming transaction is categorized automatically using OpenAI's GPT-3.5-turbo. Rather than sending just the
+										transaction name and amount, the prompt is enriched with multiple layers of context to maximize accuracy:
+									</p>
+									<ul>
+										<li><Strong>Transaction Metadata</Strong> — Amount, merchant name, Plaid's own category (when available), and
+											the transaction description.</li>
+										<li><Strong>User's Budget Categories</Strong> — The full set of categories and subcategories from the user's
+											budget, so the AI assigns to valid destinations.</li>
+										<li><Strong>Merchant History</Strong> — The last 3 transactions from the same vendor and how they were
+											categorized, biasing the model toward consistency.</li>
+										<li><Strong>Manual Override History</Strong> — When a user corrects a categorization, that override is stored
+											in a dedicated table and included in future prompts for the same merchant, allowing the system to learn from
+											corrections over time.</li>
+									</ul>
+									<p>
+										Before hitting the LLM at all, a transfer detection layer checks for keywords (TRANSFER, PAYMENT, CREDIT CARD,
+										AUTOPAY) and Plaid category patterns (TRANSFER_IN, LOAN_PAYMENTS, etc.) to automatically classify obvious
+										non-spending transactions as "Excluded" — keeping them out of the budget without wasting an API call.
+									</p>
+
+									<h3 class="major">Security Architecture</h3>
+									<p>
+										Sensitive third-party tokens — Plaid access tokens and Slack OAuth tokens — are encrypted at rest using
+										AES-256-GCM, an authenticated encryption scheme that provides both confidentiality and integrity verification.
+										Each encryption uses a unique random IV and salt, so the same token never produces the same ciphertext. The
+										encryption key is derived from an environment variable, keeping it fully separate from the database. Backward
+										compatibility logic detects legacy unencrypted tokens and handles them gracefully during migration.
+									</p>
+									<p>
+										Webhook endpoints verify the authenticity of incoming requests from both Plaid and Slack using their respective
+										signature schemes, with timestamp validation to prevent replay attacks. User authentication is JWT-based with
+										bcrypt password hashing, and Helmet.js enforces standard HTTP security headers across the API.
+									</p>
+
+									<h3 class="major">Slack-Guided Month-End Reconciliation</h3>
+									<p>
+										At the end of each month, the system needs to reconcile actual spending against budgeted amounts. Fixed categories
+										(like rent or subscriptions) are processed automatically — surplus rolls over or deficit is noted. But variable
+										categories (groceries, dining, entertainment) require user decisions about what to do with leftover or overspent
+										funds. Rather than building a custom UI for this, the reconciliation flow is driven entirely through Slack.
+									</p>
+									<p>
+										The flow presents one category at a time via interactive Slack messages with buttons. For categories with surplus,
+										the user chooses where to move the extra funds. For deficits, they choose which category to pull from. Partial
+										coverage is supported — a message updates in place as the user allocates funds across multiple destinations.
+										A final "Lock Month" button creates immutable snapshots of every category's end state.
+									</p>
+									<p>
+										Real-time transaction notifications are also delivered through Slack, showing the category, merchant, amount,
+										and a budget progress indicator. Users can correct categorizations directly from the notification via buttons,
+										or initiate a split transaction through a two-step modal flow: first selecting the number of splits, then
+										filling in amounts for each — with the last split auto-calculating the remaining balance and validation
+										ensuring the splits sum to the original transaction amount.
+									</p>
+									<p>
+										The entire flow is tracked by a state machine (Pending, In Progress, Awaiting User Input, Completed) with
+										every fund movement recorded in a dedicated table for a complete audit trail.
+									</p>
+
+									<h3 class="major">Database Design</h3>
+									<p>
+										The database schema is defined in TypeScript using Drizzle ORM's schema-first approach. The schema file serves
+										as the single source of truth — running <code>drizzle-kit generate</code> produces SQL migration files
+										automatically, and migrations run on every server startup, keeping the database always in sync with the code
+										without manual deployment steps.
+									</p>
+									<p>
+										The data model is organized around several key relationships:
+									</p>
+									<ul>
+										<li><Strong>Budget Hierarchy</Strong> — Users own budgets, budgets contain categories, and categories contain
+											subcategories. A unique constraint enforces one budget per user, simplifying all business logic to a single
+											source of truth.</li>
+										<li><Strong>Banking Data</Strong> — Plaid items (bank connections) own accounts, and accounts own transactions.
+											Transaction IDs from Plaid are stored with a unique constraint to prevent duplicates during re-syncs.</li>
+										<li><Strong>Cascading Deletes</Strong> — Deleting a user cascades through all related data (budgets, categories,
+											transactions, Plaid connections), maintaining referential integrity without application-level cleanup logic.</li>
+										<li><Strong>Flexible Storage</Strong> — Plaid's category arrays are stored as JSON columns rather than
+											normalized tables, preserving the third-party data structure while remaining queryable with PostgreSQL's
+											JSON operators.</li>
+										<li><Strong>Month-End Auditing</Strong> — Fund movements and monthly snapshots are stored in separate tables,
+											creating an immutable audit trail of every reconciliation decision.</li>
+									</ul>
+
+									<ul class="actions" style="display: flex; justify-content: center; margin: 0; padding: 0;">
+										<li style="list-style-type: none;">
+											<a href="https://github.com/joshkatzenbach/autobudget" class="button primary">See the Code</a>
+										</li>
+									</ul>
+							</div>
+
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							<h2 class="major">Get in touch</h2>
+                            <p>Feel free to reach out to me on any of the following platforms.</p>
+							<ul class="contact">
+								<li class="icon solid fa-phone">(801) 602-8168</li>
+								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
+								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
+								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
