@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Text Campaigns</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html">Text Campaigns</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>Text Campaigns</h2>
+								<p>Automated messaging platform for sales teams — built at Enzy.</p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+
+									<h3 class="major">Description</h3>
+									<p>
+										At Enzy, I helped build the text campaign system — an automated messaging platform that enables
+										sales organizations to run targeted, data-driven messaging programs at scale. Managers configure
+										campaigns tied to live performance metrics, and the system automatically sends the right message
+										to the right person at the right time based on their actual numbers.
+									</p>
+									<p>
+										The platform supports rich message types beyond plain text — images, videos, documents, GIFs,
+										multi-image attachments, embedded reports, polls, and more. It integrates with Twilio for SMS
+										delivery and handles inbound responses, connecting them back to surveys and forms within the app.
+										The entire system is multi-tenant, isolating data at the workspace level so multiple organizations
+										run on the same infrastructure without overlap.
+									</p>
+									<p>
+										The backend is Java with a DAO-based persistence layer on AWS Aurora MySQL, and the frontend is
+										an Angular/Ionic hybrid mobile application. Media assets are stored across dedicated S3 buckets
+										with a normalized URL storage pattern that eliminates duplication.
+									</p>
+									<p>
+										<em>Note: This was built as part of my work at Enzy. Source code is proprietary and not publicly available.</em>
+									</p>
+
+									<h3 class="major">Messaging Program Architecture</h3>
+									<p>
+										The core abstraction is the "messaging program" — a configurable campaign that ties message
+										delivery to report data. Each program defines a date range, a set of trigger conditions, and
+										the content to send when those conditions are met. Triggers map to specific metric values from
+										live reports, so a manager can set up rules like "send this motivational video to anyone who
+										hits 80% of their monthly target" or "send a reminder to reps with zero activity this week."
+									</p>
+									<p>
+										Each trigger stores its own message content and type — a trigger might send a plain text
+										message, while another sends a video with a thumbnail, and a third sends an image. This
+										flexibility means a single program can deliver different content to different segments of the
+										team based on where they stand, all driven by real performance data rather than static
+										distribution lists.
+									</p>
+
+									<h3 class="major">Scheduled Execution</h3>
+									<p>
+										Campaign execution is handled by a Quartz-based job scheduler with time-window constraints.
+										Programs only fire during configurable business hours, preventing messages from going out at
+										inappropriate times. The job iterates through every active workspace, finds programs that fall
+										within their date range and haven't already run, loads the relevant report data, groups users
+										by their trigger values, and dispatches messages accordingly.
+									</p>
+									<p>
+										The job implements an interruptible interface for graceful server shutdown — if the server needs
+										to restart mid-execution, in-flight work stops cleanly rather than leaving the system in an
+										inconsistent state. Execution timestamps are tracked per program so the scheduler knows exactly
+										what has and hasn't been processed.
+									</p>
+
+									<h3 class="major">Message Delivery & Rich Media</h3>
+									<p>
+										The message system supports a wide range of content types through a type enum that drives
+										type-specific processing throughout the stack. When a message is sent, the system:
+									</p>
+									<ul>
+										<li><Strong>Validates permissions</Strong> — Checks conversation membership, admin-only
+											channel restrictions, and deduplicates by frontend ID to prevent double-sends.</li>
+										<li><Strong>Handles media</Strong> — Images, videos, and documents are uploaded to
+											dedicated S3 buckets. Videos go through an AWS MediaConvert transcoding pipeline.
+											Multi-image messages are stored via a separate attachment table.</li>
+										<li><Strong>Extracts link previews</Strong> — URL messages automatically generate and
+											store preview metadata.</li>
+										<li><Strong>Dispatches notifications</Strong> — Real-time socket notifications for
+											in-app delivery, push notifications for native mobile, or both depending on
+											message type. Video messages use socket-only delivery until transcoding completes.</li>
+									</ul>
+
+									<h3 class="major">Twilio SMS Integration</h3>
+									<p>
+										The platform integrates with Twilio for outbound SMS delivery and receives inbound responses
+										via a webhook endpoint. When a recipient replies to an SMS, Twilio posts the message along
+										with metadata — sender, geographic information, media count — to the webhook receiver. The
+										system persists the response, matches it back to the original question recipient, and links
+										it into the survey/form system so managers can see responses alongside campaign performance.
+									</p>
+
+									<h3 class="major">Multi-Tenant Data Architecture</h3>
+									<p>
+										Every table in the system includes workspace and company identifiers, enforcing tenant isolation
+										at the database level. This means multiple sales organizations share the same infrastructure
+										while their data remains completely separated — campaigns, contacts, messages, and analytics
+										are all scoped to the workspace.
+									</p>
+									<p>
+										Media storage uses a normalized S3 URL pattern — rather than storing full URLs on every record,
+										URLs are stored once in a dedicated table and referenced by ID. This reduces data duplication
+										across the millions of messages and attachments in the system and makes it straightforward to
+										update CDN paths or migrate storage without touching every record. Soft deletes with timestamps
+										are used throughout, preserving audit trails and enabling data recovery.
+									</p>
+
+							</div>
+
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							<h2 class="major">Get in touch</h2>
+                            <p>Feel free to reach out to me on any of the following platforms.</p>
+							<ul class="contact">
+								<li class="icon solid fa-phone">(801) 602-8168</li>
+								<li class="icon solid fa-envelope"><a href="mailto:joshkatzenbach@gmail.com">joshkatzenbach@gmail.com</a></li>
+								<li class="icon brands fa-linkedin-in"><a href="https://www.linkedin.com/in/josh-katzenbach">linkedin.com/in/josh-katzenbach</a></li>
+								<li class="icon brands fa-instagram"><a href="https://instagram.com/josh_katzenbach">instagram.com/josh_katzenbach</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
