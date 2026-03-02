@@ -51,10 +51,23 @@
 
 									<h3 class="major">Description</h3>
 									<p>
-										AutoBudget is a full-stack personal finance management platform designed to automate the tedious parts of budgeting.
-										Users connect their bank accounts, and the system automatically syncs transactions, categorizes them using AI, and
-										tracks spending against a custom budget — all without manual data entry. At month-end, an interactive Slack flow
-										guides users through reconciliation decisions for each budget category.
+										Most budgeting apps share the same fundamental problem: people don't open them. You set up categories, link
+										your accounts, and then never look at the app again until you've already overspent. AutoBudget was built
+										around a different premise — instead of waiting for you to check in, it comes to you. Every time a
+										transaction hits your bank account, you get an instant Slack message showing what you spent, where it was
+										categorized, and exactly how much of that category's budget remains. This real-time awareness helps you
+										make proactive spending decisions in the moment, not after the fact.
+									</p>
+									<p>
+										At the end of each month, a Slack-driven reconciliation flow holds you accountable — walking through every
+										category where you went over budget and requiring a decision about where those funds come from, while
+										incentivizing savings by letting you see surplus accumulate. The result is a budgeting system that stays
+										in your face just enough to actually change behavior.
+									</p>
+									<p>
+										Under the hood, AutoBudget is a full-stack TypeScript platform. Users connect their bank accounts via Plaid,
+										transactions are automatically synced and categorized using AI, and spending is tracked against a custom budget
+										— all without manual data entry.
 									</p>
 									<p>
 										The entire stack is written in TypeScript — Angular 20+ on the frontend and Express.js on the backend, with
