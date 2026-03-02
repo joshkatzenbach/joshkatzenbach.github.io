@@ -40,8 +40,8 @@
 					<section id="wrapper">
 						<header>
 							<div class="inner">
-								<h2>Text Campaigns</h2>
-								<p>Automated messaging platform for sales teams — built at Enzy.</p>
+								<h2>Smart Campaigns</h2>
+								<p>Automated text messaging system for sales teams — built at Enzy.</p>
 							</div>
 						</header>
 
@@ -51,98 +51,108 @@
 
 									<h3 class="major">Description</h3>
 									<p>
-										At Enzy, I helped build the text campaign system — an automated messaging platform that enables
-										sales organizations to run targeted, data-driven messaging programs at scale. Managers configure
-										campaigns tied to live performance metrics, and the system automatically sends the right message
-										to the right person at the right time based on their actual numbers.
+										At Enzy, I built the Smart Campaigns system — an automated text messaging platform that lets
+										sales teams send the right message to the right person at the right time, all tied to real
+										appointment and scheduling data. A manager sets up a campaign once, and the system handles
+										everything from there: sending reminders before appointments, follow-ups after, confirmations
+										at creation, and recurring check-ins — all via SMS through Twilio.
 									</p>
 									<p>
-										The platform supports rich message types beyond plain text — images, videos, documents, GIFs,
-										multi-image attachments, embedded reports, polls, and more. It integrates with Twilio for SMS
-										delivery and handles inbound responses, connecting them back to surveys and forms within the app.
-										The entire system is multi-tenant, isolating data at the workspace level so multiple organizations
-										run on the same infrastructure without overlap.
+										The system supports multiple campaign types (leads, recruits, customers, and custom) and
+										multiple delivery methods (text, email, and in-app notifications). Contacts can be enrolled
+										manually or automatically when an appointment is created. The entire system is multi-tenant,
+										with each sales organization's campaigns, subscriptions, and interactions fully isolated at
+										the database level.
 									</p>
 									<p>
-										The backend is Java with a DAO-based persistence layer on AWS Aurora MySQL, and the frontend is
-										an Angular/Ionic hybrid mobile application. Media assets are stored across dedicated S3 buckets
-										with a normalized URL storage pattern that eliminates duplication.
+										The backend is Java with a DAO-based persistence layer on AWS Aurora MySQL, and the frontend
+										is an Angular/Ionic hybrid mobile application with a multi-step campaign builder.
 									</p>
 									<p>
 										<em>Note: This was built as part of my work at Enzy. Source code is proprietary and not publicly available.</em>
 									</p>
 
-									<h3 class="major">Messaging Program Architecture</h3>
+									<h3 class="major">Trigger-Based Messaging Architecture</h3>
 									<p>
-										The core abstraction is the "messaging program" — a configurable campaign that ties message
-										delivery to report data. Each program defines a date range, a set of trigger conditions, and
-										the content to send when those conditions are met. Triggers map to specific metric values from
-										live reports, so a manager can set up rules like "send this motivational video to anyone who
-										hits 80% of their monthly target" or "send a reminder to reps with zero activity this week."
-									</p>
-									<p>
-										Each trigger stores its own message content and type — a trigger might send a plain text
-										message, while another sends a video with a thumbnail, and a third sends an image. This
-										flexibility means a single program can deliver different content to different segments of the
-										team based on where they stand, all driven by real performance data rather than static
-										distribution lists.
-									</p>
-
-									<h3 class="major">Scheduled Execution</h3>
-									<p>
-										Campaign execution is handled by a Quartz-based job scheduler with time-window constraints.
-										Programs only fire during configurable business hours, preventing messages from going out at
-										inappropriate times. The job iterates through every active workspace, finds programs that fall
-										within their date range and haven't already run, loads the relevant report data, groups users
-										by their trigger values, and dispatches messages accordingly.
-									</p>
-									<p>
-										The job implements an interruptible interface for graceful server shutdown — if the server needs
-										to restart mid-execution, in-flight work stops cleanly rather than leaving the system in an
-										inconsistent state. Execution timestamps are tracked per program so the scheduler knows exactly
-										what has and hasn't been processed.
-									</p>
-
-									<h3 class="major">Message Delivery & Rich Media</h3>
-									<p>
-										The message system supports a wide range of content types through a type enum that drives
-										type-specific processing throughout the stack. When a message is sent, the system:
+										The core of Smart Campaigns is the trigger system. Each campaign contains a set of triggers,
+										and each trigger defines three things: when to send, who to send to, and what to send. The
+										"when" is anchored to appointment events:
 									</p>
 									<ul>
-										<li><Strong>Validates permissions</Strong> — Checks conversation membership, admin-only
-											channel restrictions, and deduplicates by frontend ID to prevent double-sends.</li>
-										<li><Strong>Handles media</Strong> — Images, videos, and documents are uploaded to
-											dedicated S3 buckets. Videos go through an AWS MediaConvert transcoding pipeline.
-											Multi-image messages are stored via a separate attachment table.</li>
-										<li><Strong>Extracts link previews</Strong> — URL messages automatically generate and
-											store preview metadata.</li>
-										<li><Strong>Dispatches notifications</Strong> — Real-time socket notifications for
-											in-app delivery, push notifications for native mobile, or both depending on
-											message type. Video messages use socket-only delivery until transcoding completes.</li>
+										<li><Strong>Before Appointment</Strong> — Send a reminder X hours or days before the
+											scheduled time.</li>
+										<li><Strong>After Appointment</Strong> — Send a follow-up X hours or days after.</li>
+										<li><Strong>At Appointment Creation</Strong> — Send an immediate confirmation when the
+											appointment is booked.</li>
+										<li><Strong>Delay</Strong> — Send a fixed time after the contact is enrolled in the
+											campaign.</li>
+										<li><Strong>Recurring</Strong> — Send on a repeating schedule.</li>
 									</ul>
-
-									<h3 class="major">Twilio SMS Integration</h3>
 									<p>
-										The platform integrates with Twilio for outbound SMS delivery and receives inbound responses
-										via a webhook endpoint. When a recipient replies to an SMS, Twilio posts the message along
-										with metadata — sender, geographic information, media count — to the webhook receiver. The
-										system persists the response, matches it back to the original question recipient, and links
-										it into the survey/form system so managers can see responses alongside campaign performance.
+										The "who" is equally flexible — a trigger can target the customer, the sales rep who set the
+										appointment, the closer, or the setter. This means a single campaign can coordinate messages
+										across multiple people involved in the same deal. Each trigger carries its own message content
+										and delivery method, and can optionally include the rep's digital business card or an
+										appointment reschedule link.
 									</p>
 
-									<h3 class="major">Multi-Tenant Data Architecture</h3>
+									<h3 class="major">Scheduled Execution & Smart Rescheduling</h3>
 									<p>
-										Every table in the system includes workspace and company identifiers, enforcing tenant isolation
-										at the database level. This means multiple sales organizations share the same infrastructure
-										while their data remains completely separated — campaigns, contacts, messages, and analytics
-										are all scoped to the workspace.
+										A Quartz-based job runs periodically across all active workspaces, evaluating every active
+										subscription against its campaign's triggers. For each trigger, the system calculates the
+										exact send time based on the anchor event and time offset. If the message is more than a
+										few minutes out, it's scheduled directly with Twilio for future delivery. If it's imminent,
+										it's sent immediately. Each sent or scheduled message is recorded as an interaction with
+										its Twilio message ID for status tracking.
 									</p>
 									<p>
-										Media storage uses a normalized S3 URL pattern — rather than storing full URLs on every record,
-										URLs are stored once in a dedicated table and referenced by ID. This reduces data duplication
-										across the millions of messages and attachments in the system and makes it straightforward to
-										update CDN paths or migrate storage without touching every record. Soft deletes with timestamps
-										are used throughout, preserving audit trails and enabling data recovery.
+										A key design challenge was handling contact changes after messages are already scheduled. When
+										an appointment is rescheduled or a contact's information is updated, the system needs to cancel
+										old scheduled messages and recalculate new send times. This is managed through an update queue
+										with a locking mechanism — when a contact update comes in, the system acquires a lock, deletes
+										the old scheduled Twilio messages, recalculates trigger times against the new appointment data,
+										schedules fresh messages, and releases the lock. This prevents race conditions where concurrent
+										updates could result in duplicate or orphaned messages.
+									</p>
+
+									<h3 class="major">Twilio Integration & Opt-Out Compliance</h3>
+									<p>
+										Each workspace has its own dedicated Twilio phone number. Outbound messages are sent or
+										scheduled through Twilio's API, and status updates (delivered, failed, etc.) flow back
+										through a webhook callback that updates the interaction record in real time.
+									</p>
+									<p>
+										When a contact replies, the system checks for opt-out keywords (STOP, CANCEL, UNSUBSCRIBE,
+										and others) and automatically marks them as opted out, preventing any future messages. For
+										non-opt-out replies, the system sends back the rep's digital business card and notifies
+										the campaign creator — turning an automated text into a warm conversation handoff.
+									</p>
+									<p>
+										Contacts can also reschedule appointments directly from a link in the text message. The
+										reschedule flow lets them select a new time or confirm attendance, and the system notifies
+										the sales rep of the response — keeping the entire interaction within the SMS channel
+										without requiring the contact to download an app or visit a portal.
+									</p>
+
+									<h3 class="major">Interaction Tracking & Analytics</h3>
+									<p>
+										Every message in the system is tracked as an interaction record with a status lifecycle:
+										scheduled, sent, delivered, failed, opt-out, invalid number, or unsubscribed. This gives
+										managers full visibility into campaign performance — which messages went out, which failed,
+										and which contacts opted out. The interaction history is viewable per subscription, making
+										it easy to see the complete message timeline for any individual contact across all their
+										campaign enrollments.
+									</p>
+
+									<h3 class="major">Campaign Builder</h3>
+									<p>
+										The frontend uses a multi-step wizard built in Angular/Ionic. The first step captures campaign
+										basics — name, type, and whether it should be shared company-wide or kept private. The second
+										step is the trigger editor, where managers add message rules with the anchor event, timing,
+										recipient, delivery method, and content. The third step configures dispositions — mapping
+										campaign outcomes to the organization's existing status codes. The builder validates that
+										every trigger has complete content before allowing activation, preventing campaigns from
+										going live with missing messages.
 									</p>
 
 							</div>
