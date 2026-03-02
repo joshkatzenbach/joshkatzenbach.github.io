@@ -76,45 +76,28 @@
 
 									<h3 class="major">Analysis Pipeline & Queue Architecture</h3>
 									<p>
-										The core challenge in building the analysis pipeline was handling OpenAI's rate limits. A single transcript
-										analysis involves multiple LLM calls — one per skill framework, plus a multi-step objection extraction
-										pipeline — and processing several transcripts concurrently would quickly trigger 429 rate limit errors.
+										The core challenge in building the analysis pipeline was handling API rate limits. A single transcript
+										analysis involves multiple LLM calls — skill evaluation, objection extraction, and categorization —
+										and processing several transcripts concurrently would quickly overwhelm the API.
 									</p>
 									<p>
-										The solution is a database-backed job queue with globally serialized processing. When a user uploads a
-										transcript, the server returns immediately with a placeholder encounter and enqueues the analysis job.
-										A background loop picks up one job at a time, processes it fully, then moves to the next. The frontend
-										polls for status updates every 60 seconds.
-									</p>
-									<p>
-										This design choice prioritizes reliability over speed. Rather than trying to parallelize AI calls
-										aggressively and building complex retry logic for rate limit failures, serialization with intelligent
-										recovery proved more dependable in practice. On server restart, any in-flight analyses are automatically
-										reset to pending, preventing stuck jobs. The background loop uses <code>setImmediate()</code> recursion
-										instead of timers, avoiding race conditions while maintaining non-blocking execution.
+										The solution is a database-backed job queue with globally serialized processing. Uploads return
+										immediately and enqueue the analysis job in the background. A processing loop picks up one job at a
+										time, completes it fully, then moves to the next. This design prioritizes reliability over speed —
+										rather than parallelizing aggressively and building complex retry logic, serialization with intelligent
+										recovery proved far more dependable. On server restart, any in-flight analyses are automatically
+										reset to pending, preventing stuck jobs.
 									</p>
 
-									<h3 class="major">Multi-Framework Skill Analysis</h3>
+									<h3 class="major">Skill Framework Analysis</h3>
 									<p>
 										A key architectural decision was making skill frameworks user-configurable rather than hard-coded. Each
 										user can create custom frameworks with their own skills and proficiency levels (e.g., "Emerging,"
-										"Proficient," "Expert"). When a transcript is analyzed, it's evaluated against every framework the user
-										has defined — meaning the same call can be scored against MEDDIC, Sandler, Challenger, or any custom
-										methodology simultaneously.
+										"Proficient," "Expert"). When a transcript is analyzed, the AI extracts skill scores and generates
+										encounter metadata (title, date, deal status), then a separate two-step pipeline handles objection
+										extraction and categorization. A normalized score across all evaluated skills produces the overall
+										encounter score.
 									</p>
-									<p>
-										The analysis flow for a single transcript works in stages:
-									</p>
-									<ul>
-										<li><Strong>First Framework</Strong> — The AI extracts skill scores and generates encounter metadata
-											(title, date, deal status). This first pass establishes the baseline context for the call.</li>
-										<li><Strong>Remaining Frameworks</Strong> — Each additional framework is processed sequentially to
-											stay within rate limits, but conceptually they're independent evaluations.</li>
-										<li><Strong>Objection Analysis</Strong> — A separate two-step pipeline extracts objections from the
-											transcript, then categorizes them (detailed in the next section).</li>
-										<li><Strong>Score Calculation</Strong> — A normalized average across all frameworks produces the
-											overall encounter score.</li>
-									</ul>
 
 									<h3 class="major">Objection Extraction & Categorization</h3>
 									<p>
@@ -134,38 +117,45 @@
 										The raw objection data stands on its own. Only the categorization layer adapts to the evolving taxonomy.
 									</p>
 
-									<h3 class="major">LLM Cost Tracking</h3>
+									<h3 class="major">Cost Tracking & Resilience</h3>
 									<p>
-										Every OpenAI API call is logged as a first-class entity in the database — not aggregated after the fact,
-										but tracked at the individual request level with input/output token counts, model name, request type
-										(transcript analysis, objection extraction, objection categorization, skill generation), and computed
-										costs based on dynamic pricing stored in the database. This enables a cost dashboard that breaks down
-										spending by request type and per-encounter, providing full transparency into AI spending and enabling
-										data-driven pricing decisions.
+										Every LLM call is logged as a first-class entity in the database — token counts, model, request type,
+										and computed costs based on dynamic pricing. This enables a cost dashboard that breaks down AI spending
+										by request type and per-encounter, providing transparency for pricing decisions.
+									</p>
+									<p>
+										All AI calls are wrapped in exponential backoff with jitter to handle transient failures gracefully.
+										Transcript text is stored at upload but cleared after successful analysis to minimize storage — if
+										analysis fails, the text is retained so the user can retry without re-uploading.
 									</p>
 
-									<h3 class="major">Resilience Patterns</h3>
+									<h3 class="major">Pipeline A/B Testing Framework</h3>
 									<p>
-										Every LLM call is wrapped in exponential backoff with jitter — up to 3 retries with delays that roughly
-										double each time, plus random variance to prevent multiple failed requests from retrying simultaneously.
-										Rate limit (429) and service unavailable (503) errors are retried; authentication and content filter
-										errors are not.
+										As the platform evolves, a key question is: how do you know if a new AI prompt, model, or analysis
+										strategy actually produces better results? To answer this, the system includes a dedicated A/B testing
+										framework for comparing different AI pipelines side by side.
 									</p>
 									<p>
-										Transcript text is stored on the encounter at upload time but cleared after successful analysis to free
-										storage. If analysis fails, the text is retained so the user can retry without re-uploading. An
-										<code>analyzed</code> flag gates all statistics queries, ensuring only fully completed analyses are
-										counted in dashboards and reports.
+										The architecture is built around a pluggable pipeline registry. Each pipeline implements a standardized
+										interface — it takes in a transcript and a skill framework, and returns scores, objections, and metadata.
+										What happens inside is entirely up to the pipeline: it could use a different model, a different prompt
+										strategy, chain-of-thought reasoning, or any other approach. New pipelines are added by creating a single
+										file and registering it — no changes to core analysis code required.
+									</p>
+									<p>
+										Users upload test transcripts, select which pipelines to run, and view results in a comparison grid —
+										skills as rows, pipelines as columns. Manual reference scores can be entered alongside the AI results,
+										making it easy to see which pipeline most closely matches human judgment. Test encounters are flagged
+										in the database so they never pollute production analytics, and deduplication logic prevents redundant
+										runs of the same transcript-pipeline-framework combination.
 									</p>
 
 									<h3 class="major">Integration System</h3>
 									<p>
-										External transcript sources connect through a webhook adapter pattern. Two adapters are currently
-										supported: a generic adapter for tools like Zapier (simple JSON payload) and a Fathom adapter for
-										the video call platform (with HMAC-SHA256 signature verification). Each integration authenticates
-										via API keys — prefixed with <code>sm_live_</code>, stored as SHA-256 hashes (the raw key is shown
-										once at creation and never again), and accepted via either Bearer header or query parameter to
-										accommodate platforms that can't set custom headers.
+										External transcript sources connect through a webhook adapter pattern, making it straightforward to
+										add new integrations as they arise. Current adapters support both simple JSON payloads (for tools
+										like Zapier) and platform-specific integrations with signature verification (like Fathom for video
+										calls). API keys are hashed before storage and shown only once at creation.
 									</p>
 
 									<h3 class="major">Database Design</h3>
